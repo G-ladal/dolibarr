@@ -355,7 +355,7 @@ function check_in_range($start_date, $end_date, $date_from_user)
 /**
  * Check if date is in opening days
  *
- * @param 	object		$daytocheck	date
+ * @param 	int			$daytocheck	date
  * @param 	object		$calentity	entity from calendar
  * @param 	object		$db			DB, might be useless (global ?)
  * @return	string					opening hours on that day
@@ -371,14 +371,13 @@ function checkAgainstOpeningDays($daytocheck, $calentity, $db)
 	$conf->entity = $calentity;
 	$conf->db = $db;
 	$conf->setValues($db);
+	$retval = '';
 
-	if (empty(getDolGlobalString($valuechecked)) || getDolGlobalString($valuechecked) == '0') {
-		return '';
-	} else {
-		return getDolGlobalString($valuechecked);
+	if (!empty(getDolGlobalString($valuechecked)) && getDolGlobalString($valuechecked) != '0') {
+		$retval = getDolGlobalString($valuechecked);
 	}
 	$conf = $savconf;
-	return '';
+	return $retval;
 }
 
 print '<div class="bookcalpublicarea centpercent center" style="min-width:30%;width:fit-content;height:70%;top:60%;left: 50%;">';

@@ -79,12 +79,12 @@ top_httphead('application/json');
  * expected ranges format is "HH:MM-HH:MM" minutes are optionals
  * multiple range are ';' or ' ' separated
  *
- * @param   int $calid                  calendar id
- * @param   string $datetocheckbooking	apointement date
- * @param   string $hourstring          apointement start hour
- * @param   string $minstring           apointement start min
- * @param   string $offsetmin           apointement duration
- * @return  int                         value 1 OK ; 0 KO
+ * @param   int $calid				calendar id
+ * @param   int $datetocheckbooking	apointement date
+ * @param   string $hourstring		apointement start hour
+ * @param   string $minstring		apointement start min
+ * @param   string $offsetmin		apointement duration
+ * @return  int						value 1 OK ; 0 KO
  */
 function checkAgainstOpeningHours($calid, $datetocheckbooking, $hourstring, $minstring, $offsetmin)
 {
