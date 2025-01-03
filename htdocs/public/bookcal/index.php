@@ -371,10 +371,10 @@ function checkAgainstOpeningDays($daytocheck, $calentity, $db)
 	$conf->entity = $calentity;
 	$conf->db = $db;
 	$conf->setValues($db);
-	$retval = '';
+	$retval = '' . getDolGlobalString($valuechecked);
 
-	if (!empty(getDolGlobalString($valuechecked)) && getDolGlobalString($valuechecked) != '0') {
-		$retval = getDolGlobalString($valuechecked);
+	if ($retval == '0') {
+		$retval = '';
 	}
 	$conf = $savconf;
 	return $retval;
