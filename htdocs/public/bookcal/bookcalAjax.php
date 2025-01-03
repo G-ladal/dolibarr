@@ -122,7 +122,7 @@ function checkAgainstOpeningHours($calid, $datetocheckbooking, $hourstring, $min
 		}
 		$mintime = $datetocheckbooking + $tstart[0] *3600 + $tstart[1] *60;
 		$maxtime = $datetocheckbooking + $tend[0] *3600 + $tend[1] *60;
-		$evstart = $datetocheckbooking + $hourstring *3600 + ($minstring+$offsetmin) *60;
+		$evstart = $datetocheckbooking + intval($hourstring) *3600 + (intval($minstring)+$offsetmin) *60;
 		$evend = $evstart + $offsetmin*60;
 		if ($evstart >= $mintime && $evend <= $maxtime) {
 			return 1;
