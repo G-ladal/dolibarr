@@ -84,12 +84,12 @@ top_httphead('application/json');
  * @param   $hourstring             apointement start hour
  * @param   $minstring              apointement start min
  * @param   $offsetmin              apointement duration
- * @param   &$response              response JSON 
+ * @param   @return                 return value 1 OK ;  0 KO
  */
-function checkAgainstOpeningHours($calid, $datetocheckbooking, $hourstring, $minstring, $offsetmin, &$response) {
+function checkAgainstOpeningHours($calid, $datetocheckbooking, $hourstring, $minstring, $offsetmin) {
     global $conf;
     global $db;
-    
+
     $cal = new Calendar($db);
     $result = $cal->fetch($calid);
     $savconf = $conf;
@@ -193,7 +193,7 @@ if ($action == 'verifyavailability') {		// Test on permission not required here 
 								$minstring = "0".$minstring;
 							}
                             //MOD CHECK OPENHOURS
-                            if (checkAgainstOpeningHours($id, $datetocheckbooking, $hourstring, $minstring, $offsetmin, $response)) {
+                            if (checkAgainstOpeningHours($id, $datetocheckbooking, $hourstring, $minstring, $offsetmin)) {
                                 $response["availability"][$hourstring.":".$minstring] = intval($obj->duration);
                             }
 						}

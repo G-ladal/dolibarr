@@ -224,7 +224,7 @@ if ($action == 'add' ) {	// Test on permission not required here (anonymous acti
 		$sql .= " WHERE s.lastname = '".$db->escape(GETPOST("lastname"))."'";
 		$sql .= " AND s.firstname = '".$db->escape(GETPOST("firstname"))."'";
 		$sql .= " AND s.email = '".$db->escape(GETPOST("email"))."'";
-        // cannot use getEntity (we are annonymous) here,
+        // cannot use getEntity (we are anonymous) here,
         // so we check but only on same entity as known calendar 
         $sql .= " AND s.entity IN (". $calendar->entity .")";
 		$resql = $db->query($sql);
