@@ -100,7 +100,7 @@ function checkAgainstOpeningHours($calid, $datetocheckbooking, $hourstring, $min
 	$conf->setValues($db);
 
 	$rangesstr = getDolGlobalString('MAIN_INFO_OPENINGHOURS_'. strtoupper(date('l', $datetocheckbooking)));
-	$rangearr = preg_split ("/[\,; ]/", $rangesstr, -1, PREG_SPLIT_NO_EMPTY);
+	$rangearr = preg_split("/[\,; ]/", $rangesstr, -1, PREG_SPLIT_NO_EMPTY);
 
 	foreach ($rangearr as $r) {
 		$timelim = explode('-', $r);
@@ -109,9 +109,9 @@ function checkAgainstOpeningHours($calid, $datetocheckbooking, $hourstring, $min
 		$tend = array();
 		$tend[0] = '23';
 		if ($timelim[0]) {
-			$tstart = preg_split ("/:/", $timelim[0]);
+			$tstart = preg_split("/:/", $timelim[0]);
 			if ($timelim[1]) {
-				$tend = preg_split ("/:/", $timelim[1]);
+				$tend = preg_split("/:/", $timelim[1]);
 			}
 		}
 		if (count($tstart) == 1) {
@@ -127,7 +127,6 @@ function checkAgainstOpeningHours($calid, $datetocheckbooking, $hourstring, $min
 		if ($evstart >= $mintime && $evend <= $maxtime) {
 			return 1;
 		}
-		
 	}
 	$conf = $savconf;
 	return 0;
@@ -245,6 +244,5 @@ if ($action == 'verifyavailability') {		// Test on permission not required here 
 	}
 	$result = $response;
 }
-
 
 echo json_encode($result);
