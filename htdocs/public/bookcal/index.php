@@ -356,7 +356,7 @@ function check_in_range($start_date, $end_date, $date_from_user)
  * Check if date is in opening days
  *
  * @param 	int			$daytocheck	date
- * @param 	object		$calentity	entity from calendar
+ * @param 	int			$calentity	entity from calendar
  * @param 	object		$db			DB, might be useless (global ?)
  * @return	string					opening hours on that day
  */

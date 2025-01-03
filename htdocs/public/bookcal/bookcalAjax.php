@@ -83,7 +83,7 @@ top_httphead('application/json');
  * @param   int $datetocheckbooking	apointement date
  * @param   string $hourstring		apointement start hour
  * @param   string $minstring		apointement start min
- * @param   string $offsetmin		apointement duration
+ * @param   int $offsetmin			apointement duration
  * @return  int						value 1 OK ; 0 KO
  */
 function checkAgainstOpeningHours($calid, $datetocheckbooking, $hourstring, $minstring, $offsetmin)
