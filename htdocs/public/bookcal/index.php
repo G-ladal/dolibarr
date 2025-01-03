@@ -337,7 +337,7 @@ if ($action == 'create') {
  * @param 	string		$start_date		startdate
  * @param 	string		$end_date		enddate
  * @param 	string		$date_from_user	date selected
- * @return	boolean					 	is date selected between sart and end
+ * @return	boolean					 	is date selected between start and end
  */
 function check_in_range($start_date, $end_date, $date_from_user)
 {
