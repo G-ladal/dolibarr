@@ -4,7 +4,7 @@
  * Copyright (C) 2009-2012	Regis Houssin			<regis.houssin@inodbox.com>
  * Copyright (C) 2023		anthony Berton			<anthony.berton@bb2a.fr>
  * Copyright (C) 2024		MDW							<mdeweerd@users.noreply.github.com>
- * Copyright (C) 2024       Frédéric France             <frederic.france@free.fr>
+ * Copyright (C) 2024	   Frédéric France			 <frederic.france@free.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,9 @@
  */
 
 /**
- *     	\file       htdocs/public/bookcal/index.php
- *		\ingroup    core
- *		\brief      File to offer a way to book a rendez-vous into a public calendar
+ *	 	\file	   htdocs/public/bookcal/index.php
+ *		\ingroup	core
+ *		\brief	  File to offer a way to book a rendez-vous into a public calendar
  *					Example of URL: https://localhost/public/bookcal/index.php?id=...
  */
 
@@ -127,10 +127,10 @@ $errmsg = '';
  *
  * @param 	string		$title				Title
  * @param 	string		$head				Head array
- * @param 	int    		$disablejs			More content into html header
- * @param 	int    		$disablehead		More content into html header
- * @param 	string[]|string	$arrayofjs			Array of complementary js files
- * @param 	string[]|string	$arrayofcss			Array of complementary css files
+ * @param 	int			$disablejs			More content into html header
+ * @param 	int			$disablehead		More content into html header
+ * @param 	string[]|string	$arrayofjs		Array of complementary js files
+ * @param 	string[]|string	$arrayofcss		Array of complementary css files
  * @return	void
  */
 function llxHeaderVierge($title, $head = "", $disablejs = 0, $disablehead = 0, $arrayofjs = [], $arrayofcss = [])
@@ -330,27 +330,45 @@ if ($action == 'create') {
 }
 
 //print '<div class="">';
+
+/**
+ * Check if in availability range
+ *
+ * @param 	string		$start_date		startdate
+ * @param 	string		$end_date		enddate
+ * @param 	string		$date_from_user	date selected
+ * @return	boolean					 	is date selected between sart and end
+ */
 function check_in_range($start_date, $end_date, $date_from_user)
 {
-  // Convert to timestamp
-  $start_ts = strtotime($start_date);
-  $end_ts = strtotime($end_date);
-  $user_ts = strtotime($date_from_user);
+	// Convert to timestamp
+	$start_ts = strtotime($start_date);
+	$end_ts = strtotime($end_date);
+	$user_ts = strtotime($date_from_user);
 
-  // Check that user date is between start & end
-  return (($user_ts >= $start_ts) && ($user_ts <= $end_ts));
+	// Check that user date is between start & end
+	return (($user_ts >= $start_ts) && ($user_ts <= $end_ts));
 }
 
 
 
-function checkAgainstOpeningDays($daytocheck, $cal, $db) {
+/**
+ * Check if date is in opening days
+ *
+ * @param 	string		$start_date	startdate
+ * @param 	object		$calentity	entity from calendar
+ * @param 	object		$db			DB, might be useless (global ?)
+ * @return	string					opening hours on that day
+ */
+function checkAgainstOpeningDays($daytocheck, $calentity, $db)
+{
 	global $conf;
 	
 	$dow_text = date('l', $daytocheck); //no "dol_date" or dol_get_day_of_week
 	$valuechecked = 'MAIN_INFO_OPENINGHOURS_' . strtoupper($dow_text);
 	$savconf = $conf;
 	$conf=new Conf();
-	$conf->entity = $cal->entity;
+	$conf->entity = $calentity;
 	$conf->db = $db;
 	$conf->setValues($db);
 
@@ -361,6 +379,7 @@ function checkAgainstOpeningDays($daytocheck, $cal, $db) {
 		return getDolGlobalString($valuechecked);
 	}
 	$conf = $savconf;
+	return '';
 }
 
 print '<div class="bookcalpublicarea centpercent center" style="min-width:30%;width:fit-content;height:70%;top:60%;left: 50%;">';
@@ -495,7 +514,7 @@ if ($action == 'afteradd') {
 				}
 				for (; $currdate <= $maxdayinfutur; $currdate = dol_time_plus_duree($currdate, 1, 'd')) {
 					$currdatearray=dol_getdate($currdate);
-					if (checkAgainstOpeningDays($currdate, $object, $db) != '') {
+					if (checkAgainstOpeningDays($currdate, $object->entity, $db) != '') {
 						$arrayofavailabledays[dol_mktime(0, 0, 0, $currdatearray['mon'], $currdatearray['mday'], $currdatearray['year'])] = dol_mktime(0, 0, 0, $currdatearray['mon'], $currdatearray['mday'], $currdatearray['year']);
 					}
 				}
