@@ -355,7 +355,7 @@ function check_in_range($start_date, $end_date, $date_from_user)
 /**
  * Check if date is in opening days
  *
- * @param 	string		$start_date	startdate
+ * @param 	object		$daytocheck	date
  * @param 	object		$calentity	entity from calendar
  * @param 	object		$db			DB, might be useless (global ?)
  * @return	string					opening hours on that day
@@ -363,7 +363,7 @@ function check_in_range($start_date, $end_date, $date_from_user)
 function checkAgainstOpeningDays($daytocheck, $calentity, $db)
 {
 	global $conf;
-	
+
 	$dow_text = date('l', $daytocheck); //no "dol_date" or dol_get_day_of_week
 	$valuechecked = 'MAIN_INFO_OPENINGHOURS_' . strtoupper($dow_text);
 	$savconf = $conf;
@@ -374,8 +374,7 @@ function checkAgainstOpeningDays($daytocheck, $calentity, $db)
 
 	if (empty(getDolGlobalString($valuechecked)) || getDolGlobalString($valuechecked) == '0') {
 		return '';
-	}
-	else {
+	} else {
 		return getDolGlobalString($valuechecked);
 	}
 	$conf = $savconf;
