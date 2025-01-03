@@ -194,6 +194,7 @@ if ($action == 'add' ) {	// Test on permission not required here (anonymous acti
 	$error = 0;
 	$idcontact = 0;
 	$calendar = $object;
+    $conf->entity = $calendar->entity; // force entity for actioncomm create (its using '$conf->')
 	$contact = new Contact($db);
 	$actioncomm = new ActionComm($db);
 	$nb_post_max = getDolGlobalInt("MAIN_SECURITY_MAX_POST_ON_PUBLIC_PAGES_BY_IP_ADDRESS", 200);
@@ -223,6 +224,9 @@ if ($action == 'add' ) {	// Test on permission not required here (anonymous acti
 		$sql .= " WHERE s.lastname = '".$db->escape(GETPOST("lastname"))."'";
 		$sql .= " AND s.firstname = '".$db->escape(GETPOST("firstname"))."'";
 		$sql .= " AND s.email = '".$db->escape(GETPOST("email"))."'";
+        // cannot use getEntity (we are annonymous) here,
+        // so we check but only on same entity as known calendar 
+        $sql .= " AND s.entity IN (". $calendar->entity .")";
 		$resql = $db->query($sql);
 
 		if ($resql) {
@@ -236,6 +240,9 @@ if ($action == 'add' ) {	// Test on permission not required here (anonymous acti
 				$contact->firstname = GETPOST("firstname");
 				$contact->email = GETPOST("email");
 				$contact->ip = getUserRemoteIP();
+                // force entity to be same as calendar,
+                // so cal owner (+other if sharing allowed) can see it
+                $contact->entity = $calendar->entity;
 
 				if (checkNbPostsForASpeceificIp($contact, $nb_post_max) <= 0) {
 					$error++;
@@ -267,9 +274,15 @@ if ($action == 'add' ) {	// Test on permission not required here (anonymous acti
 		$actioncomm->fk_bookcal_calendar = $id;
 		$actioncomm->userownerid = $calendar->visibility;
 		$actioncomm->contact_id = $contact->id;
+        // force entity to be same as calendar, so cal owner (+other if sharing allowed) can see it
+        $actioncomm->entity = $calendar->entity;
+        // set user (=cal owner) to BUSY
+        $actioncomm->transparency = 1;
 		$actioncomm->socpeopleassigned = [
 			$contact->id => [
 				'id' => $contact->id,
+                // force entity to be same as calendar
+                'entity' => $calendar->entity,
 				'mandatory' => 0,
 				'answer_status' => 0,
 				'transparency' =>0,
@@ -317,6 +330,38 @@ if ($action == 'create') {
 }
 
 //print '<div class="">';
+function check_in_range($start_date, $end_date, $date_from_user)
+{
+  // Convert to timestamp
+  $start_ts = strtotime($start_date);
+  $end_ts = strtotime($end_date);
+  $user_ts = strtotime($date_from_user);
+
+  // Check that user date is between start & end
+  return (($user_ts >= $start_ts) && ($user_ts <= $end_ts));
+}
+
+
+
+function checkAgainstOpeningDays($daytocheck, $cal, $db) {
+    global $conf;
+    
+    $dow_text = date('l', $daytocheck); //no "dol_date" or dol_get_day_of_week
+    $valuechecked = 'MAIN_INFO_OPENINGHOURS_' . strtoupper($dow_text);
+    $savconf = $conf;
+    $conf=new Conf();
+    $conf->entity = $cal->entity;
+    $conf->db = $db;
+    $conf->setValues($db);
+
+    if (empty(getDolGlobalString($valuechecked)) || getDolGlobalString($valuechecked) == '0') {
+        return '';
+    }
+    else {
+        return getDolGlobalString($valuechecked);
+    }
+    $conf = $savconf;
+}
 
 print '<div class="bookcalpublicarea centpercent center" style="min-width:30%;width:fit-content;height:70%;top:60%;left: 50%;">';
 print '<div class="bookcalform" style="min-height:50%">';
@@ -437,9 +482,21 @@ if ($action == 'afteradd') {
 			foreach ($arrayofavailabilities as $key => $value) {
 				$startarray = dol_getdate($value->start);
 				$endarray = dol_getdate($value->end);
-				for ($i = $startarray['mday']; $i <= $endarray['mday']; $i++) {
-					if ($todayarray['mon'] >= $startarray['mon'] && $todayarray['mon'] <= $endarray['mon']) {
-						$arrayofavailabledays[dol_mktime(0, 0, 0, $todayarray['mon'], $i, $todayarray['year'])] = dol_mktime(0, 0, 0, $todayarray['mon'], $i, $todayarray['year']);
+                if ($value->start > $todaytms) {
+                    $currdate = $value->start;
+                } else {
+                    $currdate = $todaytms;
+                }
+                // Limit computing for big ranges (> 2months)
+                // TODO: make it check against global ?
+                $maxdayinfutur = dol_time_plus_duree($currdate, 60, 'd');
+                if ($value->end < $maxdayinfutur) {
+                    $maxdayinfutur = $value->end;
+                }
+                for (; $currdate <= $maxdayinfutur; $currdate = dol_time_plus_duree($currdate, 1, 'd')) {
+                    $currdatearray=dol_getdate($currdate);
+                    if (checkAgainstOpeningDays($currdate, $object, $db) != '') {
+                        $arrayofavailabledays[dol_mktime(0, 0, 0, $currdatearray['mon'], $currdatearray['mday'], $currdatearray['year'])] = dol_mktime(0, 0, 0, $currdatearray['mon'], $currdatearray['mday'], $currdatearray['year']);
 					}
 				}
 			}

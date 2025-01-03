@@ -44,6 +44,7 @@ if (!defined('NOBROWSERNOTIF')) {
 
 require '../../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/bookcal/class/calendar.class.php';
 
 $action = GETPOST('action', 'aZ09');
 $id = GETPOSTINT('id');
@@ -70,6 +71,66 @@ $result = "{}";
  */
 
 top_httphead('application/json');
+
+//MOD CHECK OPENHOURS
+/**
+ * Check opening hours against availability days in entity conf
+ * MAIN_INFO_OPENINGHOURS_[weekday] content is used as ref for ranges
+ * expected ranges format is "HH:MM-HH:MM" minutes are optionals
+ * multiple range are ';' or ' ' separated
+ *
+ * @param   $calid                  calendar id
+ * @param   $datetocheckbooking		apointement date
+ * @param   $hourstring             apointement start hour
+ * @param   $minstring              apointement start min
+ * @param   $offsetmin              apointement duration
+ * @param   &$response              response JSON 
+ */
+function checkAgainstOpeningHours($calid, $datetocheckbooking, $hourstring, $minstring, $offsetmin, &$response) {
+    global $conf;
+    global $db;
+    
+    $cal = new Calendar($db);
+    $result = $cal->fetch($calid);
+    $savconf = $conf;
+    $conf=new Conf();
+    $conf->entity = $cal->entity;
+    $conf->db = $db;
+    $conf->setValues($db);
+
+    $rangesstr = getDolGlobalString('MAIN_INFO_OPENINGHOURS_'. strtoupper(date('l', $datetocheckbooking)));
+    $rangearr = preg_split ("/[\,; ]/", $rangesstr, -1, PREG_SPLIT_NO_EMPTY);
+
+    foreach ($rangearr as $r) {
+        $timelim = explode('-', $r);
+        $tstart = array();
+        $tstart[0] = '00';
+        $tend = array();
+        $tend[0] = '23';
+        if ($timelim[0]) {
+            $tstart = preg_split ("/:/", $timelim[0]);
+            if ($timelim[1]) {
+                $tend = preg_split ("/:/", $timelim[1]);
+            }
+        }
+        if (count($tstart) == 1) {
+            $tstart[1] = '00';
+        }
+        if (count($tend) == 1) {
+            $tend[1] = '59';
+        }
+        $mintime = $datetocheckbooking + $tstart[0] *3600 + $tstart[1] *60;
+        $maxtime = $datetocheckbooking + $tend[0] *3600 + $tend[1] *60;
+        $evstart = $datetocheckbooking + $hourstring *3600 + ($minstring+$offsetmin) *60;
+        $evend = $evstart + $offsetmin*60;
+        if ($evstart >= $mintime && $evend <= $maxtime) {
+            return 1;
+        }
+        
+    }
+    $conf = $savconf;
+    return 0;
+}
 
 if ($action == 'verifyavailability') {		// Test on permission not required here (anonymous action protected by mitigation of /public/... urls)
 	$response = array();
@@ -131,7 +192,10 @@ if ($action == 'verifyavailability') {		// Test on permission not required here 
 							if ($min < 10) {
 								$minstring = "0".$minstring;
 							}
-							$response["availability"][$hourstring.":".$minstring] = intval($obj->duration);
+                            //MOD CHECK OPENHOURS
+                            if (checkAgainstOpeningHours($id, $datetocheckbooking, $hourstring, $minstring, $offsetmin, $response)) {
+                                $response["availability"][$hourstring.":".$minstring] = intval($obj->duration);
+                            }
 						}
 					}
 				}
