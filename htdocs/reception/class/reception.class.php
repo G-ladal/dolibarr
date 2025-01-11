@@ -785,11 +785,13 @@ class Reception extends CommonObject
 				$this->fetch_origin();
 				if ($this->origin_object instanceof CommonObject && empty($this->origin_object->lines)) {
 					$res = $this->origin_object->fetch_lines();
-					if ($this->origin_object instanceof CommandeFournisseur) {
-						$this->commandeFournisseur = $this->origin_object;	// deprecated
-					} else {
-						$this->commandeFournisseur = null;	// deprecated
+					$this->commandeFournisseur = null;	// deprecated
+					if ($res < 0) {
+						return $res;
 					}
+				} elseif ($this->origin_object instanceof CommandeFournisseur && empty($this->origin_object->lines)) {
+					$res = $this->origin_object->fetch_lines();
+					$this->commandeFournisseur = $this->origin_object;	// deprecated
 					if ($res < 0) {
 						return $res;
 					}
@@ -1350,9 +1352,9 @@ class Reception extends CommonObject
 		if (empty($notooltip)) {
 			if (getDolGlobalInt('MAIN_OPTIMIZEFORTEXTBROWSER')) {
 				$label = $langs->trans("Reception");
-				$linkclose .= ' alt="'.dol_escape_htmltag($label, 1).'"';
+				$linkclose .= ' alt="'.dolPrintHTMLForAttribute($label).'"';
 			}
-			$linkclose .= ' title="'.dol_escape_htmltag($label, 1).'"';
+			$linkclose .= ' title="'.dolPrintHTMLForAttribute($label).'"';
 			$linkclose .= ' class="classfortooltip"';
 		}
 
